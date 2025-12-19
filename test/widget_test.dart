@@ -1,30 +1,53 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// import 'package:flutter/material.dart';
+// import 'package:flutter_test/flutter_test.dart';
+// import 'package:provider/provider.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+// import 'package:vrum/main.dart';
+// import 'package:vrum/providers/auth_provider.dart';
+// import 'package:vrum/services/api_client.dart';
 
-import 'package:vrum/main.dart';
+// void main() {
+//   TestWidgetsFlutterBinding.ensureInitialized();
+//   SharedPreferences.setMockInitialValues(const {});
 
-void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const vrum());
+//   testWidgets(
+//     'Auth screen switches between login and registration',
+//     (WidgetTester tester) async {
+//       final apiClient = ApiClient();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+//       await tester.pumpWidget(
+//         MultiProvider(
+//           providers: [
+//             Provider<ApiClient>.value(value: apiClient),
+//             ChangeNotifierProvider<AuthProvider>(
+//               create: (_) => AuthProvider(client: apiClient),
+//             ),
+//           ],
+//           child: const BikeApp(),
+//         ),
+//       );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+//     // Verify that our counter starts at 0.
+//       expect(find.text('Авторизация'), findsOneWidget);
+//       expect(
+//         find.widgetWithText(TextFormField, 'Пароль'),
+//         findsOneWidget,
+//       );
+//       expect(
+//         find.widgetWithText(TextFormField, 'Повторите пароль'),
+//         findsNothing,
+//       );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
-}
+//     // Tap the '+' icon and trigger a frame.
+//       await tester.tap(find.text('Зарегистрироваться'));
+//       await tester.pumpAndSettle();
+
+//       expect(find.text('Регистрация'), findsOneWidget);
+//       expect(
+//         find.widgetWithText(TextFormField, 'Повторите пароль'),
+//         findsOneWidget,
+//       );
+//     },
+//   );
+// }

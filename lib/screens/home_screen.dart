@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/admin_provider.dart';
+import '../providers/document_provider.dart';
 import '../services/api_client.dart';
+import 'admin_screen.dart';
+import 'document_screen.dart';
 
 enum AuthMode {
   signIn,
@@ -46,6 +50,63 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
 
+
+    if (authProvider.isAuthenticated) {
+      return _buildAuthenticatedArea(authProvider);
+    }
+
+    return _buildAuthScaffold(authProvider);
+  }
+
+  Widget _buildAuthenticatedArea(AuthProvider authProvider) {
+    final apiClient = context.read<ApiClient>();
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<DocumentProvider>(
+          create: (_) => DocumentProvider(client: apiClient),
+        ),
+        ChangeNotifierProvider<AdminProvider>(
+          create: (_) => AdminProvider(client: apiClient),
+        ),
+      ],
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(authProvider.email ?? 'Личный кабинет'),
+            actions: [
+              IconButton(
+                onPressed: authProvider.logout,
+                icon: const Icon(Icons.logout),
+                tooltip: 'Выйти из аккаунта',
+              ),
+            ],
+            bottom: const TabBar(
+              tabs: [
+                Tab(
+                  icon: Icon(Icons.description_outlined),
+                  text: 'Мой документ',
+                ),
+                Tab(
+                  icon: Icon(Icons.admin_panel_settings_outlined),
+                  text: 'Админка',
+                ),
+              ],
+            ),
+          ),
+          body: const TabBarView(
+            children: [
+              DocumentScreen(),
+              AdminScreen(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAuthScaffold(AuthProvider authProvider) {
     return Scaffold(
       appBar: AppBar(
         title: Text(_titleForMode(_mode)),

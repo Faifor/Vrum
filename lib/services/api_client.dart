@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../models/document.dart';
+import '../models/user_summary.dart';
+
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
 
@@ -23,6 +26,7 @@ class ApiClient {
 
   final http.Client _httpClient;
   final String baseUrl;
+  String? authToken;
 
   Duration get _timeout => const Duration(seconds: 15);
 
@@ -36,6 +40,7 @@ class ApiClient {
         'email': email,
         'password': password,
       },
+      authorized: false,
     );
   }
 
@@ -49,6 +54,7 @@ class ApiClient {
         'email': email,
         'password': password,
       },
+      authorized: false,
     );
   }
 
@@ -58,6 +64,7 @@ class ApiClient {
     return _post(
       '/auth/password/forgot',
       body: <String, dynamic>{'email': email},
+      authorized: false,
     );
   }
 
@@ -73,24 +80,122 @@ class ApiClient {
         'code': code,
         'new_password': newPassword,
       },
+      authorized: false,
     );
   }
+
+  Future<UserDocument> getMyDocument() async {
+    final payload = await _get('/document');
+    return UserDocument.fromJson(_extractMap(payload));
+  }
+
+  Future<UserDocument> updateMyDocument(UserDocument doc) async {
+    final payload = await _put('/document', body: doc.toJson());
+    return UserDocument.fromJson(_extractMap(payload));
+  }
+
+  Future<UserDocument> submitDocument() async {
+    final payload = await _post('/document/submit', body: const {});
+    return UserDocument.fromJson(_extractMap(payload));
+  }
+
+  Future<List<UserSummary>> listUsers() async {
+    final payload = await _get('/admin/users');
+    return _extractList(payload)
+        .map((dynamic json) =>
+            UserSummary.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<UserDocument> getUserDocument(int userId) async {
+    final payload = await _get('/admin/users/$userId/document');
+    return UserDocument.fromJson(_extractMap(payload));
+  }
+
+  Future<UserDocument> approveUserDocument(int userId) async {
+    final payload = await _post('/admin/users/$userId/approve', body: const {});
+    return UserDocument.fromJson(_extractMap(payload));
+  }
+
+  Future<UserDocument> rejectUserDocument({
+    required int userId,
+    required String reason,
+  }) async {
+    final payload = await _post(
+      '/admin/users/$userId/reject',
+      body: <String, dynamic>{'reason': reason},
+    );
+    return UserDocument.fromJson(_extractMap(payload));
+  }
+
 
   Future<Map<String, dynamic>> _post(
     String path, {
     required Map<String, dynamic> body,
+    bool authorized = true,
+  }) {
+    return _request(
+      path,
+      method: 'POST',
+      body: body,
+      authorized: authorized,
+    );
+  }
+
+  Future<Map<String, dynamic>> _put(
+    String path, {
+    required Map<String, dynamic> body,
+  }) {
+    return _request(
+      path,
+      method: 'PUT',
+      body: body,
+      authorized: true,
+    );
+  }
+
+  Future<Map<String, dynamic>> _get(String path) {
+    return _request(path, method: 'GET', authorized: true);
+  }
+
+  Future<Map<String, dynamic>> _request(
+    String path, {
+    required String method,
+    Map<String, dynamic>? body,
+    bool authorized = true,
   }) async {
     final uri = _buildUri(path);
-    final response = await _httpClient
-        .post(
-          uri,
-          headers: <String, String>{
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: jsonEncode(body),
-        )
-        .timeout(_timeout);
+    final headers = _buildHeaders(authorized: authorized);
+
+    late http.Response response;
+
+    switch (method) {
+      case 'GET':
+        response = await _httpClient
+            .get(uri, headers: headers)
+            .timeout(_timeout);
+        break;
+      case 'PUT':
+        response = await _httpClient
+            .put(
+              uri,
+              headers: headers,
+              body: jsonEncode(body ?? <String, dynamic>{}),
+            )
+            .timeout(_timeout);
+        break;
+      case 'POST':
+        response = await _httpClient
+            .post(
+              uri,
+              headers: headers,
+              body: jsonEncode(body ?? <String, dynamic>{}),
+            )
+            .timeout(_timeout);
+        break;
+      default:
+        throw ArgumentError.value(method, 'method', 'Unsupported HTTP method');
+    }
 
     final payload = _decodeJson(response.body);
 
@@ -103,6 +208,20 @@ class ApiClient {
         'Unexpected error (code ${response.statusCode})';
     throw ApiException(message, statusCode: response.statusCode);
   }
+
+    Map<String, String> _buildHeaders({required bool authorized}) {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (authorized && authToken != null && authToken!.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $authToken';
+    }
+
+    return headers;
+  }
+
 
   Uri _buildUri(String path) {
     if (path.startsWith('http')) {
@@ -126,6 +245,31 @@ class ApiClient {
     }
 
     return <String, dynamic>{'data': decoded};
+  }
+
+    Map<String, dynamic> _extractMap(Map<String, dynamic> payload) {
+    final data = payload['data'];
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    return payload;
+  }
+
+  List<dynamic> _extractList(Map<String, dynamic> payload) {
+    final data = payload['data'];
+    if (data is List<dynamic>) {
+      return data;
+    }
+    final results = payload['results'];
+    if (results is List<dynamic>) {
+      return results;
+    }
+    final valuesList =
+        payload.values.whereType<List<dynamic>>().toList(growable: false);
+    if (valuesList.isNotEmpty) {
+      return valuesList.first;
+    }
+    return <dynamic>[];
   }
 
   String? _extractErrorMessage(Map<String, dynamic> payload) {

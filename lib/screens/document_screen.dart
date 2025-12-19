@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/document.dart';
 import '../providers/document_provider.dart';
 import '../widgets/document_form.dart';
 import '../widgets/status_badge.dart';
@@ -40,6 +39,7 @@ class _DocumentScreenState extends State<DocumentScreen> {
                   ),
                 ],
               ),
+              if (provider.loading) const LinearProgressIndicator(),
               if (provider.error != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),

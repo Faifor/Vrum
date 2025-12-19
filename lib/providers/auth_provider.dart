@@ -23,6 +23,7 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _accessToken = prefs.getString(_tokenKey);
     _email = prefs.getString(_emailKey);
+    _client.authToken = _accessToken;
     notifyListeners();
   }
 
@@ -67,6 +68,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     _accessToken = null;
     _email = null;
+    _client.authToken = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_emailKey);
@@ -79,6 +81,7 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _email = email;
     _accessToken = _extractToken(response);
+    _client.authToken = _accessToken;
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_emailKey, email);

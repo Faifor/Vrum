@@ -16,6 +16,17 @@ class _AdminScreenState extends State<AdminScreen> {
   final _reasonController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AdminProvider>().refreshUsers();
+      }
+    });
+  }
+
+
+  @override
   void dispose() {
     _reasonController.dispose();
     super.dispose();
@@ -53,6 +64,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
+                if (provider.loading) const LinearProgressIndicator(),
               ...provider.users.map(
                 (user) => Card(
                   child: ListTile(
