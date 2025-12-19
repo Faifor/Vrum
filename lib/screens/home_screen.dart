@@ -52,22 +52,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(24),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 480),
               child: Form(
                 key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    ..._buildFields(),
-                    const SizedBox(height: 20),
-                    _buildPrimaryAction(authProvider),
-                    const SizedBox(height: 12),
-                    _buildSecondaryActions(),
-                  ],
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: AutofillGroup(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      ..._buildFields(),
+                      const SizedBox(height: 20),
+                      _buildPrimaryAction(authProvider),
+                      const SizedBox(height: 12),
+                      _buildSecondaryActions(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -87,6 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
           hintText: 'user@example.com',
           border: OutlineInputBorder(),
         ),
+        autofillHints: const <String>[
+          AutofillHints.username,
+          AutofillHints.email,
+        ],
+        textInputAction: TextInputAction.next,
         validator: (String? value) {
           if (value == null || value.trim().isEmpty) {
             return 'Введите почту';
@@ -105,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
         fields.addAll(_passwordFields(
           controller: _passwordController,
           label: 'Пароль',
+          autofillHints: const <String>[AutofillHints.password],
         ));
         break;
       case AuthMode.signUp:
@@ -112,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
           controller: _passwordController,
           label: 'Пароль',
           confirmController: _confirmPasswordController,
+          autofillHints: const <String>[AutofillHints.newPassword],
         ));
         break;
       case AuthMode.forgotRequest:
@@ -126,6 +137,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelText: 'Код подтверждения',
                 border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
               validator: (String? value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Введите код из письма';
@@ -140,6 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _newPasswordController,
               label: 'Новый пароль',
               confirmController: _confirmNewPasswordController,
+              autofillHints: const <String>[AutofillHints.newPassword],
             ),
           );
         break;
@@ -152,6 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required TextEditingController controller,
     required String label,
     TextEditingController? confirmController,
+    List<String>? autofillHints,
   }) {
     return <Widget>[
       TextFormField(
@@ -160,6 +175,10 @@ class _HomeScreenState extends State<HomeScreen> {
           labelText: label,
           border: const OutlineInputBorder(),
         ),
+        textInputAction: confirmController == null
+            ? TextInputAction.done
+            : TextInputAction.next,
+        autofillHints: autofillHints,
         obscureText: true,
         validator: (String? value) {
           if (value == null || value.isEmpty) {
@@ -179,6 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
             labelText: 'Повторите пароль',
             border: OutlineInputBorder(),
           ),
+          textInputAction: TextInputAction.done,
+          autofillHints: autofillHints,
           obscureText: true,
           validator: (String? value) {
             if (value == null || value.isEmpty) {
