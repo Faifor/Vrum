@@ -37,10 +37,13 @@ class ApiClient {
     return _post(
       '/auth/login',
       body: <String, dynamic>{
-        'email': email,
+        'grant_type': 'password',
+        'username': email,
         'password': password,
+        'scope': '',
       },
       authorized: false,
+      formUrlEncoded: true,
     );
   }
 
@@ -133,12 +136,15 @@ class ApiClient {
     String path, {
     required Map<String, dynamic> body,
     bool authorized = true,
+    bool formUrlEncoded = false,
+
   }) {
     return _request(
       path,
       method: 'POST',
       body: body,
       authorized: authorized,
+      formUrlEncoded: formUrlEncoded,
     );
   }
 
@@ -163,34 +169,33 @@ class ApiClient {
     required String method,
     Map<String, dynamic>? body,
     bool authorized = true,
+    bool formUrlEncoded = false,
   }) async {
     final uri = _buildUri(path);
-    final headers = _buildHeaders(authorized: authorized);
+    final headers =
+        _buildHeaders(authorized: authorized, formUrlEncoded: formUrlEncoded);
+
+    final encodedBody = body == null
+        ? null
+        : formUrlEncoded
+            ? _encodeFormBody(body)
+            : jsonEncode(body);
 
     late http.Response response;
 
     switch (method) {
       case 'GET':
-        response = await _httpClient
-            .get(uri, headers: headers)
-            .timeout(_timeout);
+        response =
+            await _httpClient.get(uri, headers: headers).timeout(_timeout);
         break;
       case 'PUT':
         response = await _httpClient
-            .put(
-              uri,
-              headers: headers,
-              body: jsonEncode(body ?? <String, dynamic>{}),
-            )
+            .put(uri, headers: headers, body: encodedBody)
             .timeout(_timeout);
         break;
       case 'POST':
         response = await _httpClient
-            .post(
-              uri,
-              headers: headers,
-              body: jsonEncode(body ?? <String, dynamic>{}),
-            )
+            .post(uri, headers: headers, body: encodedBody)
             .timeout(_timeout);
         break;
       default:
@@ -209,9 +214,14 @@ class ApiClient {
     throw ApiException(message, statusCode: response.statusCode);
   }
 
-    Map<String, String> _buildHeaders({required bool authorized}) {
+    Map<String, String> _buildHeaders({
+    required bool authorized,
+    required bool formUrlEncoded,
+  }) {
     final headers = <String, String>{
-      'Content-Type': 'application/json',
+      'Content-Type': formUrlEncoded
+          ? 'application/x-www-form-urlencoded'
+          : 'application/json',
       'Accept': 'application/json',
     };
 
@@ -222,6 +232,14 @@ class ApiClient {
     return headers;
   }
 
+  String _encodeFormBody(Map<String, dynamic> body) {
+    return body.entries
+        .map(
+          (entry) =>
+              '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(entry.value?.toString() ?? '')}',
+        )
+        .join('&');
+  }
 
   Uri _buildUri(String path) {
     if (path.startsWith('http')) {
@@ -247,7 +265,7 @@ class ApiClient {
     return <String, dynamic>{'data': decoded};
   }
 
-    Map<String, dynamic> _extractMap(Map<String, dynamic> payload) {
+  Map<String, dynamic> _extractMap(Map<String, dynamic> payload) {
     final data = payload['data'];
     if (data is Map<String, dynamic>) {
       return data;
