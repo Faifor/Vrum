@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:vrum/main.dart';
-import 'package:vrum/providers/auth_provider.dart';
-import 'package:vrum/services/api_client.dart';
+import '../lib/main.dart';
+import '../lib/providers/auth_provider.dart';
+import '../lib/services/api_client.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

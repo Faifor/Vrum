@@ -1,5 +1,5 @@
 
-name: vrum_frontend
+name: vrum
 description: Flutter client for Bike API backend
 version: 0.1.0
 publish_to: 'none'
