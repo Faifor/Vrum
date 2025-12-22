@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/user_profile.dart';
 import '../services/api_client.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -14,16 +15,23 @@ class AuthProvider extends ChangeNotifier {
   String? _accessToken;
   String? _email;
   bool _isLoading = false;
+  UserProfile? _profile;
+  bool _profileLoading = false;
 
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _accessToken != null;
   String? get email => _email;
+  UserProfile? get profile => _profile;
+  bool get profileLoading => _profileLoading;
 
   Future<void> tryRestoreSession() async {
     final prefs = await SharedPreferences.getInstance();
     _accessToken = prefs.getString(_tokenKey);
     _email = prefs.getString(_emailKey);
     _client.authToken = _accessToken;
+    if (_accessToken != null) {
+      await loadProfile(trackLoading: false);
+    }
     notifyListeners();
   }
 
@@ -31,6 +39,7 @@ class AuthProvider extends ChangeNotifier {
     await _runTrackedAction(() async {
       final response = await _client.login(email: email, password: password);
       await _persistAuthData(email: email, response: response);
+      await loadProfile(trackLoading: false);
     });
   }
 
@@ -42,6 +51,7 @@ class AuthProvider extends ChangeNotifier {
       final response =
           await _client.register(email: email, password: password);
       await _persistAuthData(email: email, response: response);
+      await loadProfile(trackLoading: false);
     });
   }
 
@@ -68,6 +78,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     _accessToken = null;
     _email = null;
+    _profile = null;
     _client.authToken = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
@@ -89,6 +100,27 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString(_tokenKey, _accessToken!);
     }
     notifyListeners();
+  }
+
+  Future<void> loadProfile({bool trackLoading = true}) async {
+    if (_accessToken == null) {
+      return;
+    }
+
+    if (trackLoading) {
+      _profileLoading = true;
+      notifyListeners();
+    }
+
+    try {
+      _profile = await _client.getCurrentUser();
+      notifyListeners();
+    } finally {
+      if (trackLoading) {
+        _profileLoading = false;
+        notifyListeners();
+      }
+    }
   }
 
   Future<void> _runTrackedAction(

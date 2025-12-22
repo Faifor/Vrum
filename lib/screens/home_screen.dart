@@ -7,6 +7,7 @@ import '../providers/document_provider.dart';
 import '../services/api_client.dart';
 import 'admin_screen.dart';
 import 'document_screen.dart';
+import 'profile_screen.dart';
 
 enum AuthMode {
   signIn,
@@ -34,6 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
       TextEditingController();
 
   AuthMode _mode = AuthMode.signIn;
+  int _selectedIndex = 0;
+  bool _profileRequested = false;
 
   @override
   void dispose() {
@@ -59,7 +62,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAuthenticatedArea(AuthProvider authProvider) {
+    if (!_profileRequested && authProvider.profile == null) {
+      _profileRequested = true;
+      authProvider.loadProfile(trackLoading: false);
+    }
+
     final apiClient = context.read<ApiClient>();
+    final isAdmin =
+        (authProvider.profile?.role ?? '').toLowerCase() == 'admin';
 
     return MultiProvider(
       providers: [
@@ -70,39 +80,62 @@ class _HomeScreenState extends State<HomeScreen> {
           create: (_) => AdminProvider(client: apiClient),
         ),
       ],
-      child: DefaultTabController(
-        length: 2,
-        child: Scaffold(
+      child: Builder(builder: (context) {
+        final pages = <Widget>[
+          const ProfileScreen(),
+          const DocumentScreen(),
+          if (isAdmin) const AdminScreen(),
+        ];
+        final destinations = <NavigationDestination>[
+          const NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            label: 'Профиль',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.description_outlined),
+            label: 'Договор',
+          ),
+          if (isAdmin)
+            const NavigationDestination(
+              icon: Icon(Icons.admin_panel_settings_outlined),
+              label: 'Админка',
+            ),
+        ];
+
+        final currentIndex =
+            _selectedIndex.clamp(0, destinations.length - 1);
+
+        return Scaffold(
           appBar: AppBar(
             title: Text(authProvider.email ?? 'Личный кабинет'),
             actions: [
               IconButton(
-                onPressed: authProvider.logout,
+                onPressed: () {
+                  setState(() {
+                    _selectedIndex = 0;
+                  });
+                  authProvider.logout();
+                },
                 icon: const Icon(Icons.logout),
                 tooltip: 'Выйти из аккаунта',
               ),
             ],
-            bottom: const TabBar(
-              tabs: [
-                Tab(
-                  icon: Icon(Icons.description_outlined),
-                  text: 'Мой документ',
-                ),
-                Tab(
-                  icon: Icon(Icons.admin_panel_settings_outlined),
-                  text: 'Админка',
-                ),
-              ],
-            ),
           ),
-          body: const TabBarView(
-            children: [
-              DocumentScreen(),
-              AdminScreen(),
-            ],
+          body: IndexedStack(
+            index: currentIndex,
+            children: pages,
           ),
-        ),
-      ),
+        bottomNavigationBar: NavigationBar(
+            selectedIndex: currentIndex,
+            destinations: destinations,
+            onDestinationSelected: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+          ),
+        );
+      }),
     );
   }
 

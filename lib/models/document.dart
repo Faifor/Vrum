@@ -17,20 +17,12 @@ DocumentStatus parseStatus(String? value) {
 class UserDocument {
   final int? id;
   final String fullName;
-  final String address;
+  final String inn;
+  final String registrationAddress;
+  final String residentialAddress;
   final String passport;
   final String phone;
-  final String? bankAccount;
-  final String? contractNumber;
-  final String? bikeSerial;
-  final String? akb1Serial;
-  final String? akb2Serial;
-  final String? akb3Serial;
-  final String? amount;
-  final String? amountText;
-  final int? weeksCount;
-  final String? filledDate;
-  final String? endDate;
+  final String bankAccount;
   final DocumentStatus status;
   final String? rejectionReason;
   final String? contractText;
@@ -38,20 +30,12 @@ class UserDocument {
   const UserDocument({
     this.id,
     required this.fullName,
-    required this.address,
+    required this.inn,
+    required this.registrationAddress,
+    required this.residentialAddress,
     required this.passport,
     required this.phone,
-    this.bankAccount,
-    this.contractNumber,
-    this.bikeSerial,
-    this.akb1Serial,
-    this.akb2Serial,
-    this.akb3Serial,
-    this.amount,
-    this.amountText,
-    this.weeksCount,
-    this.filledDate,
-    this.endDate,
+    required this.bankAccount,
     this.status = DocumentStatus.draft,
     this.rejectionReason,
     this.contractText,
@@ -60,9 +44,12 @@ class UserDocument {
   factory UserDocument.empty() {
     return const UserDocument(
       fullName: '',
-      address: '',
+      inn: '',
+      registrationAddress: '',
+      residentialAddress: '',
       passport: '',
       phone: '',
+      bankAccount: '',
       status: DocumentStatus.draft,
     );
   }
@@ -71,20 +58,12 @@ class UserDocument {
     return UserDocument(
       id: json['id'] as int?,
       fullName: json['full_name'] as String? ?? '',
-      address: json['address'] as String? ?? '',
-      passport: json['passport'] as String? ?? '',
+      inn: json['inn']?.toString() ?? '',
+      registrationAddress: json['registration_address'] as String? ?? '',
+      residentialAddress: json['residential_address'] as String? ?? '',
+      passport: json['passport']?.toString() ?? '',
       phone: json['phone'] as String? ?? '',
-      bankAccount: json['bank_account'] as String?,
-      contractNumber: json['contract_number'] as String?,
-      bikeSerial: json['bike_serial'] as String?,
-      akb1Serial: json['akb1_serial'] as String?,
-      akb2Serial: json['akb2_serial'] as String?,
-      akb3Serial: json['akb3_serial'] as String?,
-      amount: json['amount'] as String?,
-      amountText: json['amount_text'] as String?,
-      weeksCount: json['weeks_count'] as int?,
-      filledDate: json['filled_date'] as String?,
-      endDate: json['end_date'] as String?,
+      bankAccount: json['bank_account']?.toString() ?? '',
       status: parseStatus(json['status'] as String?),
       rejectionReason: json['rejection_reason'] as String?,
       contractText: json['contract_text'] as String?,
@@ -94,40 +73,24 @@ class UserDocument {
   Map<String, dynamic> toJson() {
     return {
       'full_name': fullName,
-      'address': address,
+      'inn': inn,
+      'registration_address': registrationAddress,
+      'residential_address': residentialAddress,
       'passport': passport,
       'phone': phone,
       'bank_account': bankAccount,
-      'contract_number': contractNumber,
-      'bike_serial': bikeSerial,
-      'akb1_serial': akb1Serial,
-      'akb2_serial': akb2Serial,
-      'akb3_serial': akb3Serial,
-      'amount': amount,
-      'amount_text': amountText,
-      'weeks_count': weeksCount,
-      'filled_date': filledDate,
-      'end_date': endDate,
     };
   }
 
   UserDocument copyWith({
     int? id,
     String? fullName,
-    String? address,
+    String? inn,
+    String? registrationAddress,
+    String? residentialAddress,
     String? passport,
     String? phone,
     String? bankAccount,
-    String? contractNumber,
-    String? bikeSerial,
-    String? akb1Serial,
-    String? akb2Serial,
-    String? akb3Serial,
-    String? amount,
-    String? amountText,
-    int? weeksCount,
-    String? filledDate,
-    String? endDate,
     DocumentStatus? status,
     String? rejectionReason,
     String? contractText,
@@ -135,20 +98,12 @@ class UserDocument {
     return UserDocument(
       id: id ?? this.id,
       fullName: fullName ?? this.fullName,
-      address: address ?? this.address,
+      inn: inn ?? this.inn,
+      registrationAddress: registrationAddress ?? this.registrationAddress,
+      residentialAddress: residentialAddress ?? this.residentialAddress,
       passport: passport ?? this.passport,
       phone: phone ?? this.phone,
       bankAccount: bankAccount ?? this.bankAccount,
-      contractNumber: contractNumber ?? this.contractNumber,
-      bikeSerial: bikeSerial ?? this.bikeSerial,
-      akb1Serial: akb1Serial ?? this.akb1Serial,
-      akb2Serial: akb2Serial ?? this.akb2Serial,
-      akb3Serial: akb3Serial ?? this.akb3Serial,
-      amount: amount ?? this.amount,
-      amountText: amountText ?? this.amountText,
-      weeksCount: weeksCount ?? this.weeksCount,
-      filledDate: filledDate ?? this.filledDate,
-      endDate: endDate ?? this.endDate,
       status: status ?? this.status,
       rejectionReason: rejectionReason ?? this.rejectionReason,
       contractText: contractText ?? this.contractText,

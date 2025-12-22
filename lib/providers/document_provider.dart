@@ -17,6 +17,14 @@ class DocumentProvider extends ChangeNotifier {
   UserDocument get document => _document;
   bool get loading => _loading;
   String? get error => _error;
+  bool get hasCompletedProfile =>
+      _document.fullName.isNotEmpty &&
+      _document.inn.isNotEmpty &&
+      _document.registrationAddress.isNotEmpty &&
+      _document.residentialAddress.isNotEmpty &&
+      _document.passport.isNotEmpty &&
+      _document.phone.isNotEmpty &&
+      _document.bankAccount.isNotEmpty;
 
   Future<void> fetch() async {
     _setLoading();
@@ -38,10 +46,10 @@ class DocumentProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> submit() async {
+  Future<void> submit(UserDocument doc) async {
     _setLoading();
     try {
-      _document = await _client.submitDocument();
+      _document = await _client.submitDocument(doc);
       _clearError();
     } catch (e) {
       _setError(e);

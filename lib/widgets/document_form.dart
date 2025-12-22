@@ -14,7 +14,7 @@ class DocumentForm extends StatefulWidget {
   final UserDocument document;
   final bool loading;
   final Future<void> Function(UserDocument) onSaveDraft;
-  final Future<void> Function() onSubmit;
+  final Future<void> Function(UserDocument) onSubmit;
 
   @override
   State<DocumentForm> createState() => _DocumentFormState();
@@ -41,35 +41,19 @@ class _DocumentFormState extends State<DocumentForm> {
   void _initControllers() {
     _controllers['full_name'] =
         TextEditingController(text: widget.document.fullName);
-    _controllers['address'] =
-        TextEditingController(text: widget.document.address);
+    _controllers['inn'] = TextEditingController(text: widget.document.inn);
+    _controllers['registration_address'] = TextEditingController(
+      text: widget.document.registrationAddress,
+    );
+    _controllers['residential_address'] = TextEditingController(
+      text: widget.document.residentialAddress,
+    );
     _controllers['passport'] =
         TextEditingController(text: widget.document.passport);
     _controllers['phone'] =
         TextEditingController(text: widget.document.phone);
     _controllers['bank_account'] =
-        TextEditingController(text: widget.document.bankAccount ?? '');
-    _controllers['contract_number'] =
-        TextEditingController(text: widget.document.contractNumber ?? '');
-    _controllers['bike_serial'] =
-        TextEditingController(text: widget.document.bikeSerial ?? '');
-    _controllers['akb1_serial'] =
-        TextEditingController(text: widget.document.akb1Serial ?? '');
-    _controllers['akb2_serial'] =
-        TextEditingController(text: widget.document.akb2Serial ?? '');
-    _controllers['akb3_serial'] =
-        TextEditingController(text: widget.document.akb3Serial ?? '');
-    _controllers['amount'] =
-        TextEditingController(text: widget.document.amount ?? '');
-    _controllers['amount_text'] =
-        TextEditingController(text: widget.document.amountText ?? '');
-    _controllers['weeks_count'] = TextEditingController(
-      text: widget.document.weeksCount?.toString() ?? '',
-    );
-    _controllers['filled_date'] =
-        TextEditingController(text: widget.document.filledDate ?? '');
-    _controllers['end_date'] =
-        TextEditingController(text: widget.document.endDate ?? '');
+        TextEditingController(text: widget.document.bankAccount);
   }
 
   void _syncWithDocument() {
@@ -83,34 +67,18 @@ class _DocumentFormState extends State<DocumentForm> {
     switch (key) {
       case 'full_name':
         return widget.document.fullName;
-      case 'address':
-        return widget.document.address;
+      case 'inn':
+        return widget.document.inn;
+      case 'registration_address':
+        return widget.document.registrationAddress;
+      case 'residential_address':
+        return widget.document.residentialAddress;
       case 'passport':
         return widget.document.passport;
       case 'phone':
         return widget.document.phone;
       case 'bank_account':
         return widget.document.bankAccount;
-      case 'contract_number':
-        return widget.document.contractNumber;
-      case 'bike_serial':
-        return widget.document.bikeSerial;
-      case 'akb1_serial':
-        return widget.document.akb1Serial;
-      case 'akb2_serial':
-        return widget.document.akb2Serial;
-      case 'akb3_serial':
-        return widget.document.akb3Serial;
-      case 'amount':
-        return widget.document.amount;
-      case 'amount_text':
-        return widget.document.amountText;
-      case 'weeks_count':
-        return widget.document.weeksCount?.toString();
-      case 'filled_date':
-        return widget.document.filledDate;
-      case 'end_date':
-        return widget.document.endDate;
     }
     return '';
   }
@@ -118,20 +86,12 @@ class _DocumentFormState extends State<DocumentForm> {
   UserDocument _buildDocument() {
     return widget.document.copyWith(
       fullName: _controllers['full_name']!.text,
-      address: _controllers['address']!.text,
+      inn: _controllers['inn']!.text,
+      registrationAddress: _controllers['registration_address']!.text,
+      residentialAddress: _controllers['residential_address']!.text,
       passport: _controllers['passport']!.text,
       phone: _controllers['phone']!.text,
       bankAccount: _controllers['bank_account']!.text,
-      contractNumber: _controllers['contract_number']!.text,
-      bikeSerial: _controllers['bike_serial']!.text,
-      akb1Serial: _controllers['akb1_serial']!.text,
-      akb2Serial: _controllers['akb2_serial']!.text,
-      akb3Serial: _controllers['akb3_serial']!.text,
-      amount: _controllers['amount']!.text,
-      amountText: _controllers['amount_text']!.text,
-      weeksCount: int.tryParse(_controllers['weeks_count']!.text),
-      filledDate: _controllers['filled_date']!.text,
-      endDate: _controllers['end_date']!.text,
     );
   }
 
@@ -154,29 +114,39 @@ class _DocumentFormState extends State<DocumentForm> {
             runSpacing: 12,
             children: [
               _buildField('full_name', 'ФИО', required: true),
-              _buildField('address', 'Адрес', required: true),
-              _buildField('passport', 'Паспорт', required: true),
-              _buildField('phone', 'Телефон', required: true),
-              _buildField('bank_account', 'Банковский счёт'),
-              _buildField('contract_number', 'Номер договора'),
-              _buildField('bike_serial', 'Серийный номер велосипеда'),
-              _buildField('akb1_serial', 'АКБ 1'),
-              _buildField('akb2_serial', 'АКБ 2'),
-              _buildField('akb3_serial', 'АКБ 3'),
-              _buildField('amount', 'Сумма платежа'),
-              _buildField('amount_text', 'Сумма прописью'),
               _buildField(
-                'weeks_count',
-                'Количество недель',
+                'inn',
+                'ИНН',
+                required: true,
                 keyboardType: TextInputType.number,
               ),
               _buildField(
-                'filled_date',
-                'Дата заполнения (ГГГГ-ММ-ДД)',
+                'registration_address',
+                'Адрес регистрации',
+                required: true,
               ),
               _buildField(
-                'end_date',
-                'Дата окончания (ГГГГ-ММ-ДД)',
+                'residential_address',
+                'Адрес проживания',
+                required: true,
+              ),
+              _buildField(
+                'passport',
+                'Паспорт',
+                required: true,
+                keyboardType: TextInputType.number,
+              ),
+              _buildField(
+                'phone',
+                'Телефон',
+                required: true,
+                keyboardType: TextInputType.phone,
+              ),
+              _buildField(
+                'bank_account',
+                'Банковский счёт',
+                required: true,
+                keyboardType: TextInputType.number,
               ),
             ],
           ),
@@ -204,8 +174,9 @@ class _DocumentFormState extends State<DocumentForm> {
                       ? null
                       : () async {
                           if (_formKey.currentState!.validate()) {
-                            await widget.onSaveDraft(_buildDocument());
-                            await widget.onSubmit();
+                            final doc = _buildDocument();
+                            await widget.onSaveDraft(doc);
+                            await widget.onSubmit(doc);
                           }
                         },
                   label: widget.loading

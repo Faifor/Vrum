@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/document.dart';
+import '../models/user_profile.dart';
 import '../models/user_summary.dart';
 
 class ApiException implements Exception {
@@ -88,18 +89,26 @@ class ApiClient {
   }
 
   Future<UserDocument> getMyDocument() async {
-    final payload = await _get('/document');
+    final payload = await _get('/users/me/document');
     return UserDocument.fromJson(_extractMap(payload));
   }
 
   Future<UserDocument> updateMyDocument(UserDocument doc) async {
-    final payload = await _put('/document', body: doc.toJson());
+    final payload = await _put('/users/me/document', body: doc.toJson());
     return UserDocument.fromJson(_extractMap(payload));
   }
 
-  Future<UserDocument> submitDocument() async {
-    final payload = await _post('/document/submit', body: const {});
+  Future<UserDocument> submitDocument(UserDocument doc) async {
+    final payload = await _post(
+      '/users/me/document',
+      body: doc.toJson(),
+    );
     return UserDocument.fromJson(_extractMap(payload));
+  }
+
+  Future<UserProfile> getCurrentUser() async {
+    final payload = await _get('/auth/me');
+    return UserProfile.fromJson(_extractMap(payload));
   }
 
   Future<List<UserSummary>> listUsers() async {

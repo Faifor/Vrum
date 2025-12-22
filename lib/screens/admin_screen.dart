@@ -69,7 +69,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 (user) => Card(
                   child: ListTile(
                     title: Text(user.email),
-                    subtitle: Text('${user.firstName} ${user.lastName}'),
+                    subtitle: Text(user.fullName ?? '—'),
                     trailing: StatusBadge(
                       status:
                           user.documentStatus ?? DocumentStatus.draft,
@@ -104,11 +104,12 @@ class _AdminScreenState extends State<AdminScreen> {
 
   String _buildDocumentText(UserDocument document) {
     return '''${document.fullName}
-${document.address}
-${document.passport}
+ИНН: ${document.inn}
+Адрес регистрации: ${document.registrationAddress}
+Адрес проживания: ${document.residentialAddress}
+Паспорт: ${document.passport}
 Телефон: ${document.phone}
-Серийный номер: ${document.bikeSerial ?? '-'}
-Сумма: ${document.amount ?? '-'}''';
+Банковский счёт: ${document.bankAccount}''';
   }
 }
 

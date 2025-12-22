@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/document_provider.dart';
-import '../widgets/document_form.dart';
 import '../widgets/status_badge.dart';
 
 class DocumentScreen extends StatefulWidget {
@@ -25,7 +24,7 @@ class _DocumentScreenState extends State<DocumentScreen> {
               Row(
                 children: [
                   const Text(
-                    'Моя заявка',
+                    'Мой договор',
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
@@ -48,36 +47,53 @@ class _DocumentScreenState extends State<DocumentScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
-              const SizedBox(height: 12),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: DocumentForm(
-                    document: provider.document,
-                    loading: provider.loading,
-                    onSaveDraft: (value) =>
-                        provider.update(provider.document.copyWith(
-                      fullName: value.fullName,
-                      address: value.address,
-                      passport: value.passport,
-                      phone: value.phone,
-                      bankAccount: value.bankAccount,
-                      contractNumber: value.contractNumber,
-                      bikeSerial: value.bikeSerial,
-                      akb1Serial: value.akb1Serial,
-                      akb2Serial: value.akb2Serial,
-                      akb3Serial: value.akb3Serial,
-                      amount: value.amount,
-                      amountText: value.amountText,
-                      weeksCount: value.weeksCount,
-                      filledDate: value.filledDate,
-                      endDate: value.endDate,
-                    )),
-                    onSubmit: () => provider.submit(),
+              if (!provider.hasCompletedProfile)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'Заполните профиль',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Чтобы увидеть договор, сначала заполните данные в профиле и отправьте их на проверку.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else ...[
+                const SizedBox(height: 12),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Основные данные',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ..._buildInfoRows(provider),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
+              ],
               if (provider.document.rejectionReason != null)
                 Card(
                   color: Colors.red.shade50,
@@ -104,6 +120,50 @@ class _DocumentScreenState extends State<DocumentScreen> {
           ),
         );
       },
+    );
+  }
+  List<Widget> _buildInfoRows(DocumentProvider provider) {
+    final doc = provider.document;
+    return [
+      _InfoRow(label: 'ФИО', value: doc.fullName),
+      _InfoRow(label: 'ИНН', value: doc.inn),
+      _InfoRow(label: 'Адрес регистрации', value: doc.registrationAddress),
+      _InfoRow(label: 'Адрес проживания', value: doc.residentialAddress),
+      _InfoRow(label: 'Паспорт', value: doc.passport),
+      _InfoRow(label: 'Телефон', value: doc.phone),
+      _InfoRow(label: 'Банковский счёт', value: doc.bankAccount),
+    ];
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 160,
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value.isEmpty ? '—' : value,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
