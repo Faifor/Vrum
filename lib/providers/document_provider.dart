@@ -46,10 +46,10 @@ class DocumentProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> submit(UserDocument doc) async {
+  Future<void> submit() async {
     _setLoading();
     try {
-      _document = await _client.submitDocument(doc);
+      _document = await _client.submitDocument();
       _clearError();
     } catch (e) {
       _setError(e);

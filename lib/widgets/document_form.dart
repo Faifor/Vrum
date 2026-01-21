@@ -14,7 +14,7 @@ class DocumentForm extends StatefulWidget {
   final UserDocument document;
   final bool loading;
   final Future<void> Function(UserDocument) onSaveDraft;
-  final Future<void> Function(UserDocument) onSubmit;
+  final Future<void> Function() onSubmit;
 
   @override
   State<DocumentForm> createState() => _DocumentFormState();
@@ -176,7 +176,7 @@ class _DocumentFormState extends State<DocumentForm> {
                           if (_formKey.currentState!.validate()) {
                             final doc = _buildDocument();
                             await widget.onSaveDraft(doc);
-                            await widget.onSubmit(doc);
+                            await widget.onSubmit();
                           }
                         },
                   label: widget.loading

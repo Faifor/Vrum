@@ -92,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         document: documentProvider.document,
                         loading: documentProvider.loading,
                         onSaveDraft: documentProvider.update,
-                        onSubmit: (doc) => documentProvider.submit(doc),
+                        onSubmit: documentProvider.submit,
                       ),
                     ],
                   ),

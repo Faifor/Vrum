@@ -98,10 +98,10 @@ class ApiClient {
     return UserDocument.fromJson(_extractMap(payload));
   }
 
-  Future<UserDocument> submitDocument(UserDocument doc) async {
+  Future<UserDocument> submitDocument() async {
     final payload = await _post(
       '/users/me/document/submit',
-      body: doc.toJson(),
+      body: const {},
     );
     return UserDocument.fromJson(_extractMap(payload));
   }
@@ -125,7 +125,10 @@ class ApiClient {
   }
 
   Future<UserDocument> approveUserDocument(int userId) async {
-    final payload = await _post('/admin/users/$userId/approve', body: const {});
+    final payload = await _post(
+      '/admin/users/$userId/document/approve',
+      body: const {},
+    );
     return UserDocument.fromJson(_extractMap(payload));
   }
 
@@ -134,7 +137,7 @@ class ApiClient {
     required String reason,
   }) async {
     final payload = await _post(
-      '/admin/users/$userId/reject',
+      '/admin/users/$userId/document/reject',
       body: <String, dynamic>{'reason': reason},
     );
     return UserDocument.fromJson(_extractMap(payload));
