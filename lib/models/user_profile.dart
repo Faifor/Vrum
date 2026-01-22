@@ -1,3 +1,5 @@
+import 'document.dart';
+
 class UserProfile {
   final int id;
   final String email;
@@ -9,6 +11,7 @@ class UserProfile {
   final String phone;
   final String bankAccount;
   final String role;
+  final DocumentStatus? documentStatus;
 
   const UserProfile({
     required this.id,
@@ -21,6 +24,7 @@ class UserProfile {
     required this.phone,
     required this.bankAccount,
     required this.role,
+    this.documentStatus,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -35,6 +39,21 @@ class UserProfile {
       phone: json['phone'] as String? ?? '',
       bankAccount: json['bank_account']?.toString() ?? '',
       role: json['role'] as String? ?? '',
+      documentStatus: _parseDocumentStatus(json),
     );
+  }
+
+  static DocumentStatus? _parseDocumentStatus(Map<String, dynamic> json) {
+    final dynamic statusValue = json['document_status'] ??
+        json['status'] ??
+        (json['document'] is Map<String, dynamic>
+            ? (json['document'] as Map<String, dynamic>)['status']
+            : null);
+
+    if (statusValue == null) {
+      return null;
+    }
+
+    return parseStatusValue(statusValue);
   }
 }

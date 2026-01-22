@@ -31,6 +31,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return _AdminProfile(auth: auth);
     }
 
+    final resolvedData = _ProfileData(
+      fullName: _resolveValue(
+        auth.profile?.fullName,
+        documentProvider.document.fullName,
+      ),
+      inn: _resolveValue(
+        auth.profile?.inn,
+        documentProvider.document.inn,
+      ),
+      registrationAddress: _resolveValue(
+        auth.profile?.registrationAddress,
+        documentProvider.document.registrationAddress,
+      ),
+      residentialAddress: _resolveValue(
+        auth.profile?.residentialAddress,
+        documentProvider.document.residentialAddress,
+      ),
+      passport: _resolveValue(
+        auth.profile?.passport,
+        documentProvider.document.passport,
+      ),
+      phone: _resolveValue(
+        auth.profile?.phone,
+        documentProvider.document.phone,
+      ),
+      bankAccount: _resolveValue(
+        auth.profile?.bankAccount,
+        documentProvider.document.bankAccount,
+      ),
+    );
+
+    final resolvedStatus = _resolveStatus(
+      documentProvider.document.status,
+      auth.profile?.documentStatus,
+    );
+
+    final displayStatus = _normalizeStatus(resolvedStatus, resolvedData);
+
+    final showForm =
+        displayStatus == DocumentStatus.draft ||
+        displayStatus == DocumentStatus.rejected;
+
+    final formDocument = documentProvider.document.copyWith(
+      fullName: resolvedData.fullName,
+      inn: resolvedData.inn,
+      registrationAddress: resolvedData.registrationAddress,
+      residentialAddress: resolvedData.residentialAddress,
+      passport: resolvedData.passport,
+      phone: resolvedData.phone,
+      bankAccount: resolvedData.bankAccount,
+      status: displayStatus,
+    );
+
     return RefreshIndicator(
       onRefresh: () async {
         await auth.loadProfile(trackLoading: false);
@@ -46,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 8),
-              StatusBadge(status: documentProvider.document.status),
+              StatusBadge(status: displayStatus),
               const Spacer(),
               IconButton(
                 onPressed: documentProvider.loading
@@ -67,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: const TextStyle(color: Colors.red),
               ),
             ),
-          if (!documentProvider.hasCompletedProfile)
+          if (showForm)
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Card(
@@ -76,20 +129,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Заполните данные',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Заполните данные',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          if (displayStatus == DocumentStatus.rejected) ...[
+                            const SizedBox(width: 8),
+                            StatusBadge(status: displayStatus),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Введите сведения, чтобы отправить профиль на проверку.',
+                      Text(
+                        displayStatus == DocumentStatus.rejected
+                            ? 'Данные отклонены. Исправьте сведения и отправьте снова.'
+                            : 'Введите сведения, чтобы отправить профиль на проверку.',
                       ),
+                       if (displayStatus == DocumentStatus.rejected) ...[
+                        const SizedBox(height: 8),
+                        _DetailRow(
+                          label: 'Причина отклонения',
+                          value:
+                              (documentProvider.document.rejectionReason ?? '')
+                                      .trim()
+                                      .isEmpty
+                                  ? '—'
+                                  : documentProvider.document.rejectionReason!,
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       DocumentForm(
-                        document: documentProvider.document,
+                        document: formDocument,
                         loading: documentProvider.loading,
                         onSaveDraft: documentProvider.update,
                         onSubmit: documentProvider.submit,
@@ -109,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        documentProvider.document.fullName,
+                        resolvedData.fullName,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -120,6 +195,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 6),
                       Text('ID: ${auth.profile?.id ?? '-'}'),
                       Text('Роль: ${auth.profile?.role ?? '-'}'),
+                      const SizedBox(height: 12),
+                      _DetailRow(
+                        label: 'Статус проверки',
+                        value: _statusLabel(displayStatus),
+                      ),
+                      _DetailRow(
+                        label: 'Комментарий',
+                        value: (documentProvider.document.rejectionReason ??
+                                '')
+                            .trim()
+                            .isEmpty
+                            ? '—'
+                            : documentProvider.document.rejectionReason!,
+                      ),
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: () {
@@ -133,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       if (_showDetails) ...[
                         const SizedBox(height: 12),
-                        ..._buildDetails(documentProvider.document),
+                        ..._buildDetails(resolvedData),
                       ],
                     ],
                   ),
@@ -145,16 +234,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  List<Widget> _buildDetails(UserDocument doc) {
+  List<Widget> _buildDetails(_ProfileData data) {
     return [
-      _DetailRow(label: 'ИНН', value: doc.inn),
-      _DetailRow(label: 'Адрес регистрации', value: doc.registrationAddress),
-      _DetailRow(label: 'Адрес проживания', value: doc.residentialAddress),
-      _DetailRow(label: 'Паспорт', value: doc.passport),
-      _DetailRow(label: 'Телефон', value: doc.phone),
-      _DetailRow(label: 'Банковский счёт', value: doc.bankAccount),
+      _DetailRow(label: 'ИНН', value: data.inn),
+      _DetailRow(label: 'Адрес регистрации', value: data.registrationAddress),
+      _DetailRow(label: 'Адрес проживания', value: data.residentialAddress),
+      _DetailRow(label: 'Паспорт', value: data.passport),
+      _DetailRow(label: 'Телефон', value: data.phone),
+      _DetailRow(label: 'Банковский счёт', value: data.bankAccount),
     ];
   }
+
+  String _resolveValue(String? primary, String fallback) {
+    if (primary != null && primary.trim().isNotEmpty) {
+      return primary;
+    }
+    return fallback;
+  }
+
+  DocumentStatus _resolveStatus(
+    DocumentStatus documentStatus,
+    DocumentStatus? profileStatus,
+  ) {
+    if (profileStatus != null && documentStatus == DocumentStatus.draft) {
+      return profileStatus;
+    }
+    return documentStatus;
+  }
+
+  DocumentStatus _normalizeStatus(
+    DocumentStatus status,
+    _ProfileData data,
+  ) {
+    if (status == DocumentStatus.draft && data.isComplete) {
+      return DocumentStatus.pending;
+    }
+    return status;
+  }
+
+  String _statusLabel(DocumentStatus status) {
+    switch (status) {
+      case DocumentStatus.draft:
+        return 'Черновик';
+      case DocumentStatus.pending:
+        return 'На проверке';
+      case DocumentStatus.approved:
+        return 'Одобрено';
+      case DocumentStatus.rejected:
+        return 'Отклонено';
+    }
+  }
+}
+
+class _ProfileData {
+  const _ProfileData({
+    required this.fullName,
+    required this.inn,
+    required this.registrationAddress,
+    required this.residentialAddress,
+    required this.passport,
+    required this.phone,
+    required this.bankAccount,
+  });
+
+  final String fullName;
+  final String inn;
+  final String registrationAddress;
+  final String residentialAddress;
+  final String passport;
+  final String phone;
+  final String bankAccount;
+
+  bool get isComplete =>
+      fullName.isNotEmpty &&
+      inn.isNotEmpty &&
+      registrationAddress.isNotEmpty &&
+      residentialAddress.isNotEmpty &&
+      passport.isNotEmpty &&
+      phone.isNotEmpty &&
+      bankAccount.isNotEmpty;
 }
 
 class _DetailRow extends StatelessWidget {

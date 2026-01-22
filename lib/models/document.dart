@@ -14,6 +14,19 @@ DocumentStatus parseStatus(String? value) {
   }
 }
 
+DocumentStatus parseStatusValue(dynamic value) {
+  if (value is String) {
+    return parseStatus(value);
+  }
+  if (value is Map<String, dynamic>) {
+    final dynamic nested = value['status'] ?? value['name'] ?? value['value'];
+    if (nested is String) {
+      return parseStatus(nested);
+    }
+  }
+  return DocumentStatus.draft;
+}
+
 class UserDocument {
   final int? id;
   final String fullName;
@@ -55,18 +68,36 @@ class UserDocument {
   }
 
   factory UserDocument.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> source =
+        json['document'] is Map<String, dynamic>
+            ? json['document'] as Map<String, dynamic>
+            : json;
     return UserDocument(
-      id: json['id'] as int?,
-      fullName: json['full_name'] as String? ?? '',
-      inn: json['inn']?.toString() ?? '',
-      registrationAddress: json['registration_address'] as String? ?? '',
-      residentialAddress: json['residential_address'] as String? ?? '',
-      passport: json['passport']?.toString() ?? '',
-      phone: json['phone'] as String? ?? '',
-      bankAccount: json['bank_account']?.toString() ?? '',
-      status: parseStatus(json['status'] as String?),
-      rejectionReason: json['rejection_reason'] as String?,
-      contractText: json['contract_text'] as String?,
+      id: (source['id'] ?? json['id']) as int?,
+      fullName: source['full_name'] as String? ?? '',
+      inn: source['inn']?.toString() ?? '',
+      registrationAddress: source['registration_address'] as String? ?? '',
+      residentialAddress: source['residential_address'] as String? ?? '',
+      passport: source['passport']?.toString() ?? '',
+      phone: source['phone'] as String? ?? '',
+      bankAccount: source['bank_account']?.toString() ?? '',
+      status: _parseStatus(source, json),
+      rejectionReason: source['rejection_reason'] as String? ??
+          json['rejection_reason'] as String?,
+      contractText: source['contract_text'] as String? ??
+          json['contract_text'] as String?,
+    );
+  }
+
+  static DocumentStatus _parseStatus(
+    Map<String, dynamic> source,
+    Map<String, dynamic> json,
+  ) {
+    return parseStatusValue(
+      source['status'] ??
+          source['document_status'] ??
+          json['status'] ??
+          json['document_status'],
     );
   }
 
