@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/document.dart';
+import '../models/admin_user_details.dart';
 import '../models/user_profile.dart';
 import '../models/user_summary.dart';
 
@@ -122,6 +123,11 @@ class ApiClient {
   Future<UserDocument> getUserDocument(int userId) async {
     final payload = await _get('/admin/users/$userId/document');
     return UserDocument.fromJson(_extractMap(payload));
+  }
+
+  Future<AdminUserDetails> getAdminUser(int userId) async {
+    final payload = await _get('/admin/users/$userId');
+    return AdminUserDetails.fromJson(_extractMap(payload));
   }
 
   Future<UserDocument> approveUserDocument(int userId) async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/admin_user_details.dart';
 import '../models/document.dart';
 import '../models/user_summary.dart';
 import '../services/api_client.dart';
@@ -9,12 +10,14 @@ class AdminProvider extends ChangeNotifier {
 
   final ApiClient _apiClient;
   List<UserSummary> _users = const [];
+  AdminUserDetails? _selectedUser;
   UserDocument? _selectedDocument;
   int? _selectedUserId;
   bool _loading = false;
   String? _error;
 
   List<UserSummary> get users => _users;
+  AdminUserDetails? get selectedUser => _selectedUser;
   UserDocument? get selectedDocument => _selectedDocument;
   int? get selectedUserId => _selectedUserId;
   bool get loading => _loading;
@@ -34,6 +37,18 @@ class AdminProvider extends ChangeNotifier {
     _setLoading();
     try {
       _selectedDocument = await _apiClient.getUserDocument(userId);
+      _selectedUserId = userId;
+      _clearError();
+    } catch (e) {
+      _setError(e);
+    }
+  }
+
+  Future<void> fetchUserDetails(int userId) async {
+    _setLoading();
+    try {
+      _selectedUser = await _apiClient.getAdminUser(userId);
+      _selectedDocument = null;
       _selectedUserId = userId;
       _clearError();
     } catch (e) {
