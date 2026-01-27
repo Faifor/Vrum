@@ -68,6 +68,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     final displayStatus = _normalizeStatus(resolvedStatus, resolvedData);
+    final resolvedRejectionReason = _resolveOptionalValue(
+      documentProvider.document.rejectionReason,
+      auth.profile?.rejectionReason,
+    );
 
     final showForm =
         displayStatus == DocumentStatus.draft ||
@@ -154,12 +158,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 8),
                         _DetailRow(
                           label: 'Причина отклонения',
-                          value:
-                              (documentProvider.document.rejectionReason ?? '')
-                                      .trim()
-                                      .isEmpty
-                                  ? '—'
-                                  : documentProvider.document.rejectionReason!,
+                          value: (resolvedRejectionReason ?? '').trim().isEmpty
+                              ? '—'
+                              : resolvedRejectionReason!,
                         ),
                       ],
                       const SizedBox(height: 16),
@@ -202,12 +203,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       _DetailRow(
                         label: 'Комментарий',
-                        value: (documentProvider.document.rejectionReason ??
-                                '')
-                            .trim()
-                            .isEmpty
+                        value: (resolvedRejectionReason ?? '').trim().isEmpty
                             ? '—'
-                            : documentProvider.document.rejectionReason!,
+                            : resolvedRejectionReason!,
                       ),
                       const SizedBox(height: 12),
                       OutlinedButton(
@@ -250,6 +248,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return primary;
     }
     return fallback;
+  }
+
+  String? _resolveOptionalValue(String? primary, String? fallback) {
+    if (primary != null && primary.trim().isNotEmpty) {
+      return primary;
+    }
+    if (fallback != null && fallback.trim().isNotEmpty) {
+      return fallback;
+    }
+    return null;
   }
 
   DocumentStatus _resolveStatus(

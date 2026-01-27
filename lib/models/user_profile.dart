@@ -12,6 +12,7 @@ class UserProfile {
   final String bankAccount;
   final String role;
   final DocumentStatus? documentStatus;
+  final String? rejectionReason;
 
   const UserProfile({
     required this.id,
@@ -25,6 +26,7 @@ class UserProfile {
     required this.bankAccount,
     required this.role,
     this.documentStatus,
+    this.rejectionReason,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,7 @@ class UserProfile {
       bankAccount: json['bank_account']?.toString() ?? '',
       role: json['role'] as String? ?? '',
       documentStatus: _parseDocumentStatus(json),
+      rejectionReason: _parseRejectionReason(json),
     );
   }
 
@@ -55,5 +58,18 @@ class UserProfile {
     }
 
     return parseStatusValue(statusValue);
+  }
+
+  static String? _parseRejectionReason(Map<String, dynamic> json) {
+    final dynamic reason =
+        json['rejection_reason'] ??
+        (json['document'] is Map<String, dynamic>
+            ? (json['document'] as Map<String, dynamic>)['rejection_reason']
+            : null);
+    if (reason == null) {
+      return null;
+    }
+    final resolved = reason.toString().trim();
+    return resolved.isEmpty ? null : resolved;
   }
 }
