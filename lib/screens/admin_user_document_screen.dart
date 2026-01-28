@@ -165,7 +165,7 @@ class _DocumentReview extends StatelessWidget {
             TextField(
               controller: reasonController,
               decoration: const InputDecoration(
-                labelText: 'Комментарий или причина отклонения',
+                labelText: 'Комментарий',
                 border: OutlineInputBorder(),
               ),
               minLines: 2,
