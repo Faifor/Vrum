@@ -119,8 +119,12 @@ class ApiClient {
     return UserProfile.fromJson(_extractMap(payload));
   }
 
-  Future<List<UserSummary>> listUsers() async {
-    final payload = await _get('/admin/users');
+  Future<List<UserSummary>> listUsers({String? status}) async {
+    final queryStatus = status?.trim();
+    final path = queryStatus == null || queryStatus.isEmpty
+        ? '/admin/users'
+        : '/admin/users?status=${Uri.encodeQueryComponent(queryStatus)}';
+    final payload = await _get(path);
     return _extractList(payload)
         .map((dynamic json) =>
             UserSummary.fromJson(json as Map<String, dynamic>))

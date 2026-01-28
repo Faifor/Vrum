@@ -10,6 +10,7 @@ class AdminProvider extends ChangeNotifier {
 
   final ApiClient _apiClient;
   List<UserSummary> _users = const [];
+  AdminUserStatusFilter _statusFilter = AdminUserStatusFilter.all;
   AdminUserDetails? _selectedUser;
   UserDocument? _selectedDocument;
   int? _selectedUserId;
@@ -17,6 +18,7 @@ class AdminProvider extends ChangeNotifier {
   String? _error;
 
   List<UserSummary> get users => _users;
+  AdminUserStatusFilter get statusFilter => _statusFilter;
   AdminUserDetails? get selectedUser => _selectedUser;
   UserDocument? get selectedDocument => _selectedDocument;
   int? get selectedUserId => _selectedUserId;
@@ -26,11 +28,19 @@ class AdminProvider extends ChangeNotifier {
   Future<void> refreshUsers() async {
     _setLoading();
     try {
-      _users = await _apiClient.listUsers();
+      _users = await _apiClient.listUsers(status: _statusFilter.queryValue);
       _clearError();
     } catch (e) {
       _setError(e);
     }
+  }
+
+  Future<void> setStatusFilter(AdminUserStatusFilter filter) async {
+    if (_statusFilter == filter) {
+      return;
+    }
+    _statusFilter = filter;
+    await refreshUsers();
   }
 
   Future<void> fetchDocument(int userId) async {
@@ -97,5 +107,24 @@ class AdminProvider extends ChangeNotifier {
     _loading = false;
     _error = null;
     notifyListeners();
+  }
+}
+
+enum AdminUserStatusFilter { pending, rejected, approved, draft, all }
+
+extension AdminUserStatusFilterX on AdminUserStatusFilter {
+  String get queryValue {
+    switch (this) {
+      case AdminUserStatusFilter.pending:
+        return 'pending';
+      case AdminUserStatusFilter.rejected:
+        return 'rejected';
+      case AdminUserStatusFilter.approved:
+        return 'approved';
+      case AdminUserStatusFilter.draft:
+        return 'draft';
+      case AdminUserStatusFilter.all:
+        return 'all';
+    }
   }
 }
