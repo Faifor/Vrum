@@ -90,7 +90,7 @@ class ApiClient {
   }
 
   Future<UserDocument> getMyDocument() async {
-    final payload = await _get('/users/me/document');
+    final payload = await _put('/users/me/document', body: const {});
     return UserDocument.fromJson(_extractMap(payload));
   }
 
