@@ -31,7 +31,7 @@ class UserSummary {
       role: json['role'] as String,
       documentStatus: json['document_status'] != null
           ? parseStatus(json['document_status'] as String)
-          : null,
+          : parseStatus(json['status'] as String?),
     );
   }
 }

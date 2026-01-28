@@ -14,8 +14,8 @@ class StatusBadge extends StatelessWidget {
 
     switch (status) {
       case DocumentStatus.draft:
-        color = Colors.grey;
-        label = 'Черновик';
+        color = Colors.blue;
+        label = 'Новый';
         break;
       case DocumentStatus.pending:
         color = Colors.orange;

@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Builder(builder: (context) {
         final pages = <Widget>[
           const ProfileScreen(),
-          const DocumentScreen(),
+          if (!isAdmin) const DocumentScreen(),
           if (isAdmin) const AdminScreen(),
         ];
         final destinations = <NavigationDestination>[
@@ -91,10 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.person_outline),
             label: 'Профиль',
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            label: 'Договор',
-          ),
+          if (!isAdmin)
+            const NavigationDestination(
+              icon: Icon(Icons.description_outlined),
+              label: 'Договор',
+            ),
           if (isAdmin)
             const NavigationDestination(
               icon: Icon(Icons.admin_panel_settings_outlined),
