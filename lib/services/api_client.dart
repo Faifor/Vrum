@@ -90,8 +90,15 @@ class ApiClient {
   }
 
   Future<UserDocument> getMyDocument() async {
-    final payload = await _put('/users/me/document', body: const {});
-    return UserDocument.fromJson(_extractMap(payload));
+    try {
+      final payload = await _put('/users/me/document', body: const {});
+      return UserDocument.fromJson(_extractMap(payload));
+    } on ApiException catch (error) {
+      if (error.statusCode == 422) {
+        return UserDocument.empty();
+      }
+      rethrow;
+    }
   }
 
   Future<UserDocument> updateMyDocument(UserDocument doc) async {
