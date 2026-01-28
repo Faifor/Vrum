@@ -103,12 +103,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ];
 
+        final titles = <String>[
+          'Профиль',
+          if (!isAdmin) 'Договор',
+          if (isAdmin) 'Админка',
+        ];
+
         final currentIndex =
             _selectedIndex.clamp(0, destinations.length - 1);
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(authProvider.email ?? 'Личный кабинет'),
+            title: Text(titles[currentIndex]),
             actions: [
               IconButton(
                 onPressed: () {

@@ -132,6 +132,19 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                       ),
                     if (provider.loading) const LinearProgressIndicator(),
+                    if (!provider.loading && provider.users.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: Text(
+                            'Пусто(:',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
                     ...provider.users.map(
                       (user) => Card(
                         child: ListTile(
