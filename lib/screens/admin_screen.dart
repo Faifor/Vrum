@@ -17,10 +17,10 @@ class _AdminScreenState extends State<AdminScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final List<_AdminStatusTab> _tabs = const [
-    _AdminStatusTab('Ожидают', AdminUserStatusFilter.pending),
-    _AdminStatusTab('Отказы', AdminUserStatusFilter.rejected),
-    _AdminStatusTab('Одобрены', AdminUserStatusFilter.approved),
-    _AdminStatusTab('Новые', AdminUserStatusFilter.draft),
+    _AdminStatusTab('Ждёт', AdminUserStatusFilter.pending),
+    _AdminStatusTab('Отказ', AdminUserStatusFilter.rejected),
+    _AdminStatusTab('Принят', AdminUserStatusFilter.approved),
+    _AdminStatusTab('Новый', AdminUserStatusFilter.draft),
     _AdminStatusTab('Все', AdminUserStatusFilter.all),
   ];
 
@@ -78,12 +78,43 @@ class _AdminScreenState extends State<AdminScreen>
                 ],
               ),
               ),
-            TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabs: _tabs
-                  .map((tab) => Tab(text: tab.label))
-                  .toList(growable: false),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: false,
+                  padding: EdgeInsets.zero,
+                  labelPadding: EdgeInsets.zero,
+                  labelColor: Colors.black87,
+                  unselectedLabelColor: Colors.black54,
+                  indicator: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  tabs: _tabs
+                      .map(
+                        (tab) => Tab(
+                          child: Center(child: Text(tab.label)),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              ),
             ),
             Expanded(
               child: RefreshIndicator(
