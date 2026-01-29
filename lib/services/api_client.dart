@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../models/admin_contract.dart';
 import '../models/document.dart';
 import '../models/admin_user_details.dart';
 import '../models/user_profile.dart';
@@ -160,6 +161,16 @@ class ApiClient {
     return UserDocument.fromJson(_extractMap(payload));
   }
 
+Future<AdminContract> createAdminContract(
+    int userId,
+    AdminContractDraft draft,
+  ) async {
+    final payload = await _put(
+      '/admin/users/$userId/document',
+      body: draft.toJson(),
+    );
+    return AdminContract.fromJson(_extractMap(payload));
+  }
 
   Future<Map<String, dynamic>> _post(
     String path, {

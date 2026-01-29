@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/admin_contract.dart';
 import '../models/admin_user_details.dart';
 import '../models/document.dart';
 import '../models/user_summary.dart';
@@ -13,6 +14,7 @@ class AdminProvider extends ChangeNotifier {
   AdminUserStatusFilter _statusFilter = AdminUserStatusFilter.all;
   AdminUserDetails? _selectedUser;
   UserDocument? _selectedDocument;
+  AdminContract? _selectedContract;
   int? _selectedUserId;
   bool _loading = false;
   String? _error;
@@ -21,6 +23,7 @@ class AdminProvider extends ChangeNotifier {
   AdminUserStatusFilter get statusFilter => _statusFilter;
   AdminUserDetails? get selectedUser => _selectedUser;
   UserDocument? get selectedDocument => _selectedDocument;
+  AdminContract? get selectedContract => _selectedContract;
   int? get selectedUserId => _selectedUserId;
   bool get loading => _loading;
   String? get error => _error;
@@ -88,6 +91,22 @@ class AdminProvider extends ChangeNotifier {
       await refreshUsers();
     } catch (e) {
       _setError(e);
+    }
+  }
+
+  Future<AdminContract> createContract({
+    required int userId,
+    required AdminContractDraft draft,
+  }) async {
+    _setLoading();
+    try {
+      _selectedContract = await _apiClient.createAdminContract(userId, draft);
+      _selectedUserId = userId;
+      _clearError();
+      return _selectedContract!;
+    } catch (e) {
+      _setError(e);
+      rethrow;
     }
   }
 
