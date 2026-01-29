@@ -64,9 +64,8 @@ class _AdminUserDocumentScreenState extends State<AdminUserDocumentScreen> {
                   child: LinearProgressIndicator(),
                 ),
               if (userDetails != null) ...[
-                _UserInfoCard(user: userDetails),
-                const SizedBox(height: 12),
-                _DocumentReview(
+                _UserInfoCard(
+                  user: userDetails,
                   status: userDetails.status,
                   reasonController: _reasonController,
                   onApprove: provider.loading
@@ -102,7 +101,6 @@ class _AdminUserDocumentScreenState extends State<AdminUserDocumentScreen> {
                             );
                           }
                         },
-                  documentText: _buildDocumentText(userDetails),
                 ),
               ] else if (!isLoading)
                 const Text('Данные пользователя не найдены.'),
@@ -112,37 +110,42 @@ class _AdminUserDocumentScreenState extends State<AdminUserDocumentScreen> {
       },
     );
   }
-
-  String _buildDocumentText(AdminUserDetails user) {
-    return '''${user.fullName ?? user.email}
-ИНН: ${user.inn}
-Адрес регистрации: ${user.registrationAddress}
-Адрес проживания: ${user.residentialAddress}
-Паспорт: ${user.passport}
-Телефон: ${user.phone}
-Банковский счёт: ${user.bankAccount}
-Статус: ${_statusLabel(user.status)}
-Причина отклонения: ${user.rejectionReason ?? '—'}''';
-  }
 }
 
-class _DocumentReview extends StatelessWidget {
-  const _DocumentReview({
+class _UserInfoCard extends StatelessWidget {
+  const _UserInfoCard({
+    required this.user,
     required this.status,
     required this.reasonController,
     required this.onApprove,
     required this.onReject,
-    required this.documentText,
   });
 
+  final AdminUserDetails user;
   final DocumentStatus status;
   final TextEditingController reasonController;
   final VoidCallback? onApprove;
   final VoidCallback? onReject;
-  final String documentText;
 
   @override
   Widget build(BuildContext context) {
+    final rows = <_UserInfoRow>[
+      _UserInfoRow(label: 'Email', value: user.email),
+      _UserInfoRow(label: 'ФИО', value: user.fullName ?? '—'),
+      _UserInfoRow(label: 'ИНН', value: user.inn),
+      _UserInfoRow(label: 'Адрес регистрации', value: user.registrationAddress),
+      _UserInfoRow(label: 'Адрес проживания', value: user.residentialAddress),
+      _UserInfoRow(label: 'Паспорт', value: user.passport),
+      _UserInfoRow(label: 'Телефон', value: user.phone),
+      _UserInfoRow(label: 'Банковский счёт', value: user.bankAccount),
+      _UserInfoRow(label: 'Роль', value: user.role),
+      _UserInfoRow(label: 'Статус', value: _statusLabel(user.status)),
+      _UserInfoRow(
+        label: 'Причина отклонения',
+        value: user.rejectionReason ?? '—',
+      ),
+    ];
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -152,7 +155,7 @@ class _DocumentReview extends StatelessWidget {
             Row(
               children: [
                 const Text(
-                  'Документ пользователя',
+                  'Информация пользователя',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 8),
@@ -160,8 +163,25 @@ class _DocumentReview extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(documentText),
-            const SizedBox(height: 12),
+            ...rows.map(
+              (row) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 110,
+                      child: Text(
+                        row.label,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    Expanded(child: Text(row.value)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
             TextField(
               controller: reasonController,
               decoration: const InputDecoration(
@@ -190,66 +210,6 @@ class _DocumentReview extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _UserInfoCard extends StatelessWidget {
-  const _UserInfoCard({required this.user});
-
-  final AdminUserDetails user;
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = <_UserInfoRow>[
-      _UserInfoRow(label: 'Email', value: user.email),
-      _UserInfoRow(label: 'ФИО', value: user.fullName ?? '—'),
-      _UserInfoRow(label: 'ИНН', value: user.inn),
-      _UserInfoRow(label: 'Адрес регистрации', value: user.registrationAddress),
-      _UserInfoRow(label: 'Адрес проживания', value: user.residentialAddress),
-      _UserInfoRow(label: 'Паспорт', value: user.passport),
-      _UserInfoRow(label: 'Телефон', value: user.phone),
-      _UserInfoRow(label: 'Банковский счёт', value: user.bankAccount),
-      _UserInfoRow(label: 'Роль', value: user.role),
-      _UserInfoRow(label: 'Статус', value: _statusLabel(user.status)),
-      _UserInfoRow(
-        label: 'Причина отклонения',
-        value: user.rejectionReason ?? '—',
-      ),
-    ];
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Информация пользователя',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...rows.map(
-              (row) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 110,
-                      child: Text(
-                        row.label,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    Expanded(child: Text(row.value)),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
