@@ -201,7 +201,9 @@ class _AdminUserDocumentScreenState extends State<AdminUserDocumentScreen> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => const AdminUserContractsScreen(),
+                  builder: (_) => AdminUserContractsScreen(
+                    userId: widget.user.id,
+                  ),
                 ),
               );
             },

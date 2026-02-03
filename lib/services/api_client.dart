@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/admin_contract.dart';
+import '../models/contract_document.dart';
 import '../models/document.dart';
 import '../models/admin_user_details.dart';
 import '../models/user_profile.dart';
@@ -115,6 +116,21 @@ class ApiClient {
     return UserDocument.fromJson(_extractMap(payload));
   }
 
+  Future<List<ContractDocument>> getMyDocuments() async {
+    try {
+      final payload = await _get('/users/me/documents');
+      return _extractList(payload)
+          .map((dynamic json) =>
+              ContractDocument.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on ApiException catch (error) {
+      if (error.statusCode == 422) {
+        return <ContractDocument>[];
+      }
+      rethrow;
+    }
+  }
+
   Future<UserProfile> getCurrentUser() async {
     final payload = await _get('/auth/me');
     return UserProfile.fromJson(_extractMap(payload));
@@ -135,6 +151,14 @@ class ApiClient {
   Future<UserDocument> getUserDocument(int userId) async {
     final payload = await _get('/admin/users/$userId/document');
     return UserDocument.fromJson(_extractMap(payload));
+  }
+
+  Future<List<ContractDocument>> getUserDocuments(int userId) async {
+    final payload = await _get('/admin/users/$userId/documents');
+    return _extractList(payload)
+        .map((dynamic json) =>
+            ContractDocument.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   Future<AdminUserDetails> getAdminUser(int userId) async {

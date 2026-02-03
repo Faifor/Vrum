@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/admin_contract.dart';
 import '../models/admin_user_details.dart';
+import '../models/contract_document.dart';
 import '../models/document.dart';
 import '../models/user_summary.dart';
 import '../services/api_client.dart';
@@ -15,6 +16,7 @@ class AdminProvider extends ChangeNotifier {
   AdminUserDetails? _selectedUser;
   UserDocument? _selectedDocument;
   AdminContract? _selectedContract;
+  List<ContractDocument> _selectedContracts = const [];
   int? _selectedUserId;
   bool _loading = false;
   String? _error;
@@ -24,6 +26,7 @@ class AdminProvider extends ChangeNotifier {
   AdminUserDetails? get selectedUser => _selectedUser;
   UserDocument? get selectedDocument => _selectedDocument;
   AdminContract? get selectedContract => _selectedContract;
+  List<ContractDocument> get selectedContracts => _selectedContracts;
   int? get selectedUserId => _selectedUserId;
   bool get loading => _loading;
   String? get error => _error;
@@ -62,6 +65,17 @@ class AdminProvider extends ChangeNotifier {
     try {
       _selectedUser = await _apiClient.getAdminUser(userId);
       _selectedDocument = null;
+      _selectedUserId = userId;
+      _clearError();
+    } catch (e) {
+      _setError(e);
+    }
+  }
+
+  Future<void> fetchUserContracts(int userId) async {
+    _setLoading();
+    try {
+      _selectedContracts = await _apiClient.getUserDocuments(userId);
       _selectedUserId = userId;
       _clearError();
     } catch (e) {

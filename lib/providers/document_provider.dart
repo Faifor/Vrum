@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/contract_document.dart';
 import '../models/document.dart';
 import '../services/api_client.dart';
 
@@ -11,10 +12,12 @@ class DocumentProvider extends ChangeNotifier {
   final ApiClient _client;
 
   UserDocument _document = UserDocument.empty();
+  List<ContractDocument> _contracts = const [];
   bool _loading = false;
   String? _error;
 
   UserDocument get document => _document;
+  List<ContractDocument> get contracts => _contracts;
   bool get loading => _loading;
   String? get error => _error;
   bool get hasCompletedProfile =>
@@ -30,6 +33,7 @@ class DocumentProvider extends ChangeNotifier {
     _setLoading();
     try {
       _document = await _client.getMyDocument();
+      _contracts = await _client.getMyDocuments();
       _clearError();
     } catch (e) {
       _setError(e);

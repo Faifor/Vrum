@@ -1,37 +1,5 @@
-class AdminContractDraft {
-  const AdminContractDraft({
-    required this.bikeSerial,
-    required this.akb1Serial,
-    required this.akb2Serial,
-    required this.akb3Serial,
-    required this.amount,
-    required this.weeksCount,
-    required this.filledDate,
-  });
-
-  final String bikeSerial;
-  final String akb1Serial;
-  final String akb2Serial;
-  final String akb3Serial;
-  final num amount;
-  final int weeksCount;
-  final String filledDate;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'bike_serial': bikeSerial,
-      'akb1_serial': akb1Serial,
-      'akb2_serial': akb2Serial,
-      'akb3_serial': akb3Serial,
-      'amount': amount,
-      'weeks_count': weeksCount,
-      'filled_date': filledDate,
-    };
-  }
-}
-
-class AdminContract {
-  const AdminContract({
+class ContractDocument {
+  const ContractDocument({
     required this.contractNumber,
     required this.bikeSerial,
     required this.akb1Serial,
@@ -81,16 +49,53 @@ class AdminContract {
   final String? contractText;
   final String? contractDocxUrl;
 
-  factory AdminContract.fromJson(Map<String, dynamic> json) {
-    return AdminContract(
+  factory ContractDocument.fromJson(Map<String, dynamic> json) {
+    num? parseNum(dynamic value) {
+      if (value is num) {
+        return value;
+      }
+      if (value is String) {
+        return num.tryParse(value.replaceAll(',', '.'));
+      }
+      return null;
+    }
+
+    int? parseInt(dynamic value) {
+      if (value is int) {
+        return value;
+      }
+      if (value is num) {
+        return value.toInt();
+      }
+      if (value is String) {
+        return int.tryParse(value);
+      }
+      return null;
+    }
+
+    bool parseBool(dynamic value) {
+      if (value is bool) {
+        return value;
+      }
+      if (value is num) {
+        return value != 0;
+      }
+      if (value is String) {
+        final normalized = value.toLowerCase().trim();
+        return normalized == 'true' || normalized == '1' || normalized == 'yes';
+      }
+      return false;
+    }
+
+    return ContractDocument(
       contractNumber: json['contract_number']?.toString() ?? '',
       bikeSerial: json['bike_serial']?.toString() ?? '',
       akb1Serial: json['akb1_serial']?.toString() ?? '',
       akb2Serial: json['akb2_serial']?.toString() ?? '',
       akb3Serial: json['akb3_serial']?.toString() ?? '',
-      amount: json['amount'] as num? ?? 0,
+      amount: parseNum(json['amount']) ?? 0,
       amountText: json['amount_text']?.toString() ?? '',
-      weeksCount: (json['weeks_count'] as num?)?.toInt() ?? 0,
+      weeksCount: parseInt(json['weeks_count']) ?? 0,
       filledDate: json['filled_date']?.toString() ?? '',
       endDate: json['end_date']?.toString() ?? '',
       fullName: json['full_name']?.toString() ?? '',
@@ -100,10 +105,10 @@ class AdminContract {
       passport: json['passport']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
       bankAccount: json['bank_account']?.toString() ?? '',
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: parseInt(json['id']) ?? 0,
       status: json['status']?.toString() ?? '',
       rejectionReason: json['rejection_reason']?.toString(),
-      active: json['active'] as bool? ?? false,
+      active: parseBool(json['active']),
       contractText: json['contract_text']?.toString(),
       contractDocxUrl: json['contract_docx_url']?.toString(),
     );

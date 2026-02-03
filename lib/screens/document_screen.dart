@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../models/contract_document.dart';
 import '../providers/document_provider.dart';
+import '../widgets/contract_card.dart';
 import '../widgets/status_badge.dart';
 
 class DocumentScreen extends StatefulWidget {
@@ -16,6 +19,7 @@ class _DocumentScreenState extends State<DocumentScreen> {
   Widget build(BuildContext context) {
     return Consumer<DocumentProvider>(
       builder: (context, provider, _) {
+        final contracts = _sortContracts(provider.contracts);
         return RefreshIndicator(
           onRefresh: provider.fetch,
           child: ListView(
@@ -105,6 +109,31 @@ class _DocumentScreenState extends State<DocumentScreen> {
                     ),
                   ),
                 ),
+              const SizedBox(height: 12),
+              const Text(
+                'Договора',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              if (provider.loading && contracts.isEmpty)
+                const LinearProgressIndicator(),
+              if (!provider.loading && contracts.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: Text('Договоров пока нет.'),
+                )
+              else
+                ...contracts.map(
+                  (contract) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: ContractCard(
+                      contract: contract,
+                      onTap: contract.contractDocxUrl?.isEmpty ?? true
+                          ? null
+                          : () => _openContract(context, contract),
+                    ),
+                  ),
+                ),
               if (provider.document.contractText != null)
                 Card(
                   color: Colors.green.shade50,
@@ -134,6 +163,47 @@ class _DocumentScreenState extends State<DocumentScreen> {
       _InfoRow(label: 'Банковский счёт', value: doc.bankAccount),
     ];
   }
+}
+
+List<ContractDocument> _sortContracts(List<ContractDocument> contracts) {
+  final sorted = List<ContractDocument>.from(contracts);
+  sorted.sort(
+    (a, b) {
+      if (a.active == b.active) {
+        return 0;
+      }
+      return a.active ? -1 : 1;
+    },
+  );
+  return sorted;
+}
+
+Future<void> _openContract(
+  BuildContext context,
+  ContractDocument contract,
+) async {
+  final url = contract.contractDocxUrl;
+  if (url == null || url.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Ссылка на договор недоступна')),
+    );
+    return;
+  }
+  final uri = Uri.tryParse(url);
+  if (uri == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Некорректная ссылка на договор')),
+    );
+    return;
+  }
+  final canOpen = await canLaunchUrl(uri);
+  if (!canOpen) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Не удалось открыть ссылку договора')),
+    );
+    return;
+  }
+  await launchUrl(uri, mode: LaunchMode.externalApplication);
 }
 
 class _InfoRow extends StatelessWidget {
