@@ -72,8 +72,6 @@ class ContractCard extends StatelessWidget {
               ),
               if (contract.amountText.isNotEmpty)
                 _InfoRow(label: 'Сумма', value: contract.amountText),
-              if (contract.status.isNotEmpty)
-                _InfoRow(label: 'Статус', value: _statusLabel(contract.status)),
               if (onTap != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
@@ -141,17 +139,3 @@ String _formatPeriod(String start, String end) {
   return '$start — $end';
 }
 
-String _statusLabel(String status) {
-  switch (status) {
-    case 'pending':
-      return 'На проверке';
-    case 'approved':
-      return 'Одобрен';
-    case 'rejected':
-      return 'Отклонён';
-    case 'draft':
-      return 'Черновик';
-    default:
-      return status;
-  }
-}

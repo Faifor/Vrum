@@ -1,45 +1,26 @@
-import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
-const String _defaultApiBase = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'http://89.108.113.13',
-);
-
-Future<String?> openContractUrl(String? rawUrl) async {
-  final uri = _parseContractUri(rawUrl);
-  if (uri == null) {
-    return 'Некорректная ссылка на договор';
-  }
-
+Future<String?> openContractBytes({
+  required Uint8List bytes,
+  required String fileName,
+}) async {
   try {
-    var launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
-    if (!launched) {
-      launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final directory = await getTemporaryDirectory();
+    final normalizedName = fileName.trim().isEmpty ? 'contract.docx' : fileName;
+    final file = File('${directory.path}/$normalizedName');
+    await file.writeAsBytes(bytes, flush: true);
+
+    final result = await OpenFilex.open(file.path);
+    if (result.type == ResultType.done) {
+      return null;
     }
-    if (!launched) {
-      return 'Не удалось открыть ссылку договора';
-    }
-    return null;
+    return result.message.isEmpty
+        ? 'Не удалось открыть файл договора'
+        : result.message;
   } catch (_) {
-    return 'Не удалось открыть ссылку договора';
+    return 'Не удалось открыть файл договора';
   }
-}
-
-Uri? _parseContractUri(String? rawUrl) {
-  final normalized = rawUrl?.trim();
-  if (normalized == null || normalized.isEmpty) {
-    return null;
-  }
-
-  final direct = Uri.tryParse(normalized);
-  if (direct != null && direct.hasScheme) {
-    return direct;
-  }
-
-  final base = Uri.tryParse(_defaultApiBase);
-  if (base == null) {
-    return direct;
-  }
-
-  return base.resolveUri(direct ?? Uri(path: normalized));
 }

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/contract_document.dart';
 import '../providers/document_provider.dart';
 import '../widgets/contract_card.dart';
-import '../widgets/status_badge.dart';
+import '../services/api_client.dart';
 import '../utils/contract_launcher.dart';
 
 class DocumentScreen extends StatefulWidget {
@@ -33,7 +33,6 @@ class _DocumentScreenState extends State<DocumentScreen> {
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 12),
-                  StatusBadge(status: provider.document.status),
                   const Spacer(),
                   IconButton(
                     onPressed: provider.loading ? null : provider.fetch,
@@ -51,32 +50,7 @@ class _DocumentScreenState extends State<DocumentScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
-              if (!provider.hasCompletedProfile)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Заполните профиль',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Чтобы увидеть договор, сначала заполните данные в профиле и отправьте их на проверку.',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              else ...[
+              if (provider.hasCompletedProfile) ...[
                 const SizedBox(height: 12),
                 Card(
                   child: Padding(
@@ -128,9 +102,9 @@ class _DocumentScreenState extends State<DocumentScreen> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: ContractCard(
                       contract: contract,
-                      onTap: contract.contractDocxUrl?.isEmpty ?? true
+                     onTap: contract.id <= 0
                           ? null
-                          : () => _openContract(context, contract),
+                          : () => _openContract(context, contract.id),
                     ),
                   ),
                 ),
@@ -180,9 +154,16 @@ List<ContractDocument> _sortContracts(List<ContractDocument> contracts) {
 
 Future<void> _openContract(
   BuildContext context,
-  ContractDocument contract,
+  int documentId,
 ) async {
- final error = await openContractUrl(contract.contractDocxUrl);
+ final client = context.read<ApiClient>();
+  String? error;
+  try {
+    final file = await client.downloadMyContractDocx(documentId);
+    error = await openContractBytes(bytes: file.bytes, fileName: file.fileName);
+  } catch (e) {
+    error = e.toString();
+  }
   if (!context.mounted || error == null) {
     return;
   }

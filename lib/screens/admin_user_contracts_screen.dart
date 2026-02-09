@@ -4,6 +4,7 @@ import '../models/contract_document.dart';
 import '../providers/admin_provider.dart';
 import '../widgets/contract_card.dart';
 import '../utils/contract_launcher.dart';
+import '../services/api_client.dart';
 
 class AdminUserContractsScreen extends StatefulWidget {
   const AdminUserContractsScreen({
@@ -79,9 +80,13 @@ class _AdminUserContractsScreenState extends State<AdminUserContractsScreen> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: ContractCard(
                         contract: contract,
-                        onTap: contract.contractDocxUrl?.isEmpty ?? true
+                        onTap: contract.id <= 0
                             ? null
-                            : () => _openContract(context, contract),
+                            : () => _openContract(
+                                  context,
+                                  userId: widget.userId,
+                                  documentId: contract.id,
+                                ),
                       ),
                     ),
                   ),
@@ -108,10 +113,21 @@ List<ContractDocument> _sortContracts(List<ContractDocument> contracts) {
 }
 
 Future<void> _openContract(
-  BuildContext context,
-  ContractDocument contract,
-) async {
-  final error = await openContractUrl(contract.contractDocxUrl);
+  BuildContext context, {
+  required int userId,
+  required int documentId,
+}) async {
+  final client = context.read<ApiClient>();
+  String? error;
+  try {
+    final file = await client.downloadAdminContractDocx(
+      userId: userId,
+      documentId: documentId,
+    );
+    error = await openContractBytes(bytes: file.bytes, fileName: file.fileName);
+  } catch (e) {
+    error = e.toString();
+  }
   if (!context.mounted || error == null) {
     return;
   }

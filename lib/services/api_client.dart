@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -8,6 +9,16 @@ import '../models/document.dart';
 import '../models/admin_user_details.dart';
 import '../models/user_profile.dart';
 import '../models/user_summary.dart';
+
+class DownloadedFile {
+  const DownloadedFile({
+    required this.bytes,
+    required this.fileName,
+  });
+
+  final Uint8List bytes;
+  final String fileName;
+}
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -131,6 +142,17 @@ class ApiClient {
     }
   }
 
+  Future<DownloadedFile> downloadMyContractDocx(int documentId) {
+    return _downloadFile('/users/me/contract-docx/$documentId');
+  }
+
+  Future<DownloadedFile> downloadAdminContractDocx({
+    required int userId,
+    required int documentId,
+  }) {
+    return _downloadFile('/admin/users/$userId/contract-docx/$documentId');
+  }
+
   Future<UserProfile> getCurrentUser() async {
     final payload = await _get('/auth/me');
     return UserProfile.fromJson(_extractMap(payload));
@@ -185,7 +207,7 @@ class ApiClient {
     return UserDocument.fromJson(_extractMap(payload));
   }
 
-Future<AdminContract> createAdminContract(
+  Future<AdminContract> createAdminContract(
     int userId,
     AdminContractDraft draft,
   ) async {
@@ -278,7 +300,7 @@ Future<AdminContract> createAdminContract(
     throw ApiException(message, statusCode: response.statusCode);
   }
 
-    Map<String, String> _buildHeaders({
+  Map<String, String> _buildHeaders({
     required bool authorized,
     required bool formUrlEncoded,
   }) {
@@ -294,6 +316,54 @@ Future<AdminContract> createAdminContract(
     }
 
     return headers;
+  }
+
+  Future<DownloadedFile> _downloadFile(String path) async {
+    final uri = _buildUri(path);
+    final headers = _buildHeaders(authorized: true, formUrlEncoded: false)
+      ..remove('Content-Type')
+      ..putIfAbsent(
+        'Accept',
+        () =>
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/octet-stream',
+      );
+
+    final response =
+        await _httpClient.get(uri, headers: headers).timeout(_timeout);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final payload = _decodeJson(response.body);
+      final message = _extractErrorMessage(payload) ??
+          response.reasonPhrase ??
+          'Unexpected error (code ${response.statusCode})';
+      throw ApiException(message, statusCode: response.statusCode);
+    }
+
+    final fileName = _extractFilename(response.headers['content-disposition']);
+    return DownloadedFile(bytes: response.bodyBytes, fileName: fileName);
+  }
+
+  String _extractFilename(String? contentDisposition) {
+    final raw = contentDisposition?.trim();
+    if (raw == null || raw.isEmpty) {
+      return 'contract.docx';
+    }
+
+    final utf8Match =
+        RegExp(r"filename\*=UTF-8''([^;]+)", caseSensitive: false)
+            .firstMatch(raw);
+    if (utf8Match != null) {
+      return Uri.decodeFull(utf8Match.group(1)!).replaceAll('"', '').trim();
+    }
+
+    final plainMatch =
+        RegExp(r'filename=\"?([^\";]+)\"?', caseSensitive: false)
+            .firstMatch(raw);
+    if (plainMatch != null) {
+      return plainMatch.group(1)!.trim();
+    }
+
+    return 'contract.docx';
   }
 
   String _encodeFormBody(Map<String, dynamic> body) {
