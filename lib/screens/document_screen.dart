@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/contract_document.dart';
 import '../providers/document_provider.dart';
 import '../widgets/contract_card.dart';
 import '../widgets/status_badge.dart';
+import '../utils/contract_launcher.dart';
 
 class DocumentScreen extends StatefulWidget {
   const DocumentScreen({super.key});
@@ -182,28 +182,12 @@ Future<void> _openContract(
   BuildContext context,
   ContractDocument contract,
 ) async {
-  final url = contract.contractDocxUrl;
-  if (url == null || url.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Ссылка на договор недоступна')),
-    );
+ final error = await openContractUrl(contract.contractDocxUrl);
+  if (!context.mounted || error == null) {
     return;
   }
-  final uri = Uri.tryParse(url);
-  if (uri == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Некорректная ссылка на договор')),
-    );
-    return;
-  }
-  final canOpen = await canLaunchUrl(uri);
-  if (!canOpen) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Не удалось открыть ссылку договора')),
-    );
-    return;
-  }
-  await launchUrl(uri, mode: LaunchMode.externalApplication);
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  messenger?.showSnackBar(SnackBar(content: Text(error)));
 }
 
 class _InfoRow extends StatelessWidget {

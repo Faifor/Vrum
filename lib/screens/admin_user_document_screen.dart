@@ -199,10 +199,14 @@ class _AdminUserDocumentScreenState extends State<AdminUserDocumentScreen> {
             icon: const Icon(Icons.description_outlined),
             label: const Text('Договора'),
             onPressed: () {
+              final adminProvider = context.read<AdminProvider>();
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => AdminUserContractsScreen(
-                    userId: widget.user.id,
+                  builder: (_) => ChangeNotifierProvider.value(
+                    value: adminProvider,
+                    child: AdminUserContractsScreen(
+                      userId: widget.user.id,
+                    ),
                   ),
                 ),
               );
